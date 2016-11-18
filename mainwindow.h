@@ -1,10 +1,15 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <memory>
+
 #include <QMainWindow>
 #include <QString>
 #include <QImage>
 #include <QColor>
+#include <QButtonGroup>
+
+#include "kimagemerge.h"
 
 namespace Ui {
 class MainWindow;
@@ -45,7 +50,9 @@ private slots:
     void do_image_merge();
     void setHOverlap(const QString str);
     void setVOverlap(const QString str);
-    void set_order(bool);
+    void setHImgCount(const QString str);
+    void setVImgCount(const QString str);
+    void set_merge_type();
     void set_show_line(bool);
     void set_show_color(bool);
 
@@ -55,11 +62,14 @@ private:
     QString m_sSaveName;
     uint16_t m_hOverlap;
     uint16_t m_vOverlap;
-    bool m_bPreferLatter;
+    uint16_t m_hImgCount;
+    uint16_t m_vImgCount;
+    KImageMerge::MergeType m_tMergeType;
     bool m_bShowLine;
     bool m_bSaveColor;
     bool m_bStartBlue;
     uint16_t m_iColorLevel;
+    std::shared_ptr<QButtonGroup> m_ptrBtnGroup;
     std::vector<QRgb> m_veColorMap;
 };
 
