@@ -6,6 +6,7 @@
 #include "ui_mainwindow.h"
 #include "kimagecollector.h"
 #include "krawdblintimg.h"
+#include "kcurveanalyse.h"
 
 #include <sstream>
 

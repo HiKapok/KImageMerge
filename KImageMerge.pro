@@ -17,11 +17,13 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     kimagecollector.cpp \
-    kimagemerge.cpp
+    kimagemerge.cpp \
+    kcurveanalyse.cpp
 
 HEADERS  += mainwindow.h \
     krawdblintimg.h \
     kimagecollector.h \
-    kimagemerge.h
+    kimagemerge.h \
+    kcurveanalyse.h
 
 FORMS    += mainwindow.ui
