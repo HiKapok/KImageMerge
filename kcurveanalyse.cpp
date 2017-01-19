@@ -175,16 +175,16 @@ bool KCurveAnalyse::get_pixel_point(std::tuple<uint16_t, uint16_t> intialPoint, 
     uint16_t xCount = 0;
     uint16_t yCount = 0;
 //qDebug()<<m_iTotalWidth<<m_iTotalHeight;
-    for(;wpos < m_iTotalWidth && hpos < m_iTotalHeight;wpos += std::get<0>(step)){
+    for(;wpos < m_iTotalWidth && hpos < m_iTotalHeight;){
         //qDebug()<<wpos<<hpos;
         if(!pixel2file(wpos, hpos, imagelist)) return false;
         xCount = m_vecXImageIndex.size();
         yCount = m_vecYImageIndex.size();
         KPointDetail point_detail(std::make_tuple(wpos, hpos), std::make_tuple(xCount, yCount)
                                   , std::make_tuple(m_vecXImageIndex[0], m_vecXImageIndex[xCount-1])
-                                  , std::make_tuple(m_vecYImageIndex[0], m_vecYImageIndex[yCount-1]));
+                                  , std::make_tuple(m_vecYImageIndex[0], m_vecYImageIndex[yCount-1]), format);
+        pointlist.push_back(point_detail);
         for(uint16_t yIndex = 0; yIndex < yCount; ++yIndex){
-            std::vector<uint16_t> tempVec = {};
             for(uint16_t xIndex = 0; xIndex < xCount; ++xIndex){
                 std::string tempFileCue = imagelist[yIndex*xCount+xIndex];
                 re.setPattern(tempFileCue.c_str());
@@ -208,41 +208,87 @@ bool KCurveAnalyse::get_pixel_point(std::tuple<uint16_t, uint16_t> intialPoint, 
                         std::cout<<"get pixel value error (@file:"<<realFileName<<")."<<std::endl;
                         std::terminate();
                     }else{
-                        tempVec.push_back(pixel_value);
+                        pointlist[pointlist.size()-1].put_point_by_coord(pixel_value, std::make_tuple(yIndex, xIndex));
                     }
                 }else{
                     // assume the pixel value is 0 when the file doesn't exsit.
-                    tempVec.push_back(0);
+                    pointlist[pointlist.size()-1].put_point_by_coord(0, std::make_tuple(yIndex, xIndex));
                 }
             }
-            point_detail.put_line_point(tempVec);
         }
+        if(LIST_VERTICAL == format){
+            hpos += std::get<1>(step);
+        }else wpos += std::get<0>(step);
 
-        pointlist.push_back(point_detail);
     }
 
     std::ofstream of(m_sCurDirectory+"recorder.txt", std::ofstream::out | std::ios_base::trunc);
 
     if(LIST_VERTICAL == format){
         /* xCount must be same for all points */
+        for(uint16_t index = 0;index < xCount;++index){
+            os<<m_sCurDirectory.c_str()<<"points__x"<<m_vecXImageIndex[0]<<"("<<m_fOAWidthLow+(m_vecXImageIndex[0]-1)*m_fWStepAngle<<")_x"
+            <<m_vecXImageIndex[xCount-1]<<"("<<m_fOAWidthLow+(m_vecXImageIndex[xCount-1]-1)*m_fWStepAngle<<")__";
+            os<<index<<"("<<xCount<<").txt";
+            std::ofstream datafile(os.str(), std::ofstream::out | std::ios_base::trunc);
+            std::cout << os.str().c_str()<<std::endl;
+            os.str("");
 
+            os<<"index\t";
+            for(auto & pointdetail : pointlist){
+                os<<std::get<1>(pointdetail.get_org_coord());
+                os<<"\t";
+            }
+            os<<"column:"<<std::get<0>(intialPoint);
+            os<<"\r\n";
+            for(uint16_t count = 0;count < m_iTotalHCount;++count){
+                os<<count<<"\t";
+                for(auto & pointdetail : pointlist){
+                    uint16_t temp = 0;
+                    if(pointdetail.get_point_by_realcoord(index, count, temp))
+                        os<<temp;
+                    else{ os<<0; }
+                    os<<"\t";
+                }
+                os<<"\r\n";
+            }
+
+            datafile<<os.str();
+            datafile.close();
+            os.str("");
+        }
     }else{
         /* yCount must be same for all points */
         for(uint16_t index = 0;index < yCount;++index){
-            os<<m_sCurDirectory.c_str()<<"points__"<<m_vecYImageIndex[0]<<"("<<m_fOAHeightLow+(m_vecYImageIndex[0]-1)*m_fHStepAngle<<")_"
+            os<<m_sCurDirectory.c_str()<<"points__y"<<m_vecYImageIndex[0]<<"("<<m_fOAHeightLow+(m_vecYImageIndex[0]-1)*m_fHStepAngle<<")_y"
             <<m_vecYImageIndex[yCount-1]<<"("<<m_fOAHeightLow+(m_vecYImageIndex[yCount-1]-1)*m_fHStepAngle<<")__";
             os<<index<<"("<<yCount<<").txt";
             std::ofstream datafile(os.str(), std::ofstream::out | std::ios_base::trunc);
             std::cout << os.str().c_str()<<std::endl;
             os.str("");
 
+            os<<"index\t";
             for(auto & pointdetail : pointlist){
-                std::vector<uint16_t> temp = pointdetail.get_line_point(index);
-
+                os<<std::get<0>(pointdetail.get_org_coord());
+                os<<"\t";
+            }
+            os<<"row:"<<std::get<1>(intialPoint);
+            os<<"\r\n";
+            for(uint16_t count = 0;count < m_iTotalWCount;++count){
+                os<<count<<"\t";
+                for(auto & pointdetail : pointlist){
+                    uint16_t temp = 0;
+                    if(pointdetail.get_point_by_realcoord(index, count, temp))
+                        os<<temp;
+                    else{ os<<0; }
+                    os<<"\t";
+                }
+                os<<"\r\n";
             }
 
-
+            datafile<<os.str();
             datafile.close();
+            os.str("");
         }
 
     }

@@ -28,7 +28,7 @@ public:
     /* invoke this to get pixel value list related to the position */
     bool get_pixel_list(std::tuple<uint16_t, uint16_t>, std::vector<std::vector<uint16_t>>&);
     // get pixel value for draw curve
-    bool get_pixel_point(std::tuple<uint16_t, uint16_t>, std::tuple<uint16_t, uint16_t>, std::ostream&, outputformat = LIST_HORIZONTAL);
+    bool get_pixel_point(std::tuple<uint16_t, uint16_t>, std::tuple<uint16_t, uint16_t>, std::ostream&, outputformat = LIST_VERTICAL);
 
 private:
     uint16_t m_iImgWidth;
@@ -66,31 +66,63 @@ private:
                      ,const std::tuple<uint16_t, uint16_t> &verindexbound
                      ,outputformat type)
             :m_pOriginalPoint(position),
-            m_pNumImage(numimages),
             m_pHorIndexBound(horindexbound),
             m_pVerIndexBound(verindexbound),
-            m_oDirection(type){
-            m_vecPoints.clear();
+            m_oDirection(type),
+            m_iGroupCount( (LIST_VERTICAL == m_oDirection)?(std::get<0>(numimages)):(std::get<1>(numimages)) ),
+            m_iLineCount( (LIST_VERTICAL == m_oDirection)?(std::get<1>(numimages)):(std::get<0>(numimages)) ){
+            //m_vecPoints.clear();
+
+            m_vecPoints.resize(m_iGroupCount);
+            for(uint16_t index = 0;index < m_iGroupCount;++index){
+                m_vecPoints[index].resize(m_iLineCount);
+            }
         }
         KPointDetail(const KPointDetail& rhs){
             this->m_pOriginalPoint = rhs.m_pOriginalPoint;
-            this->m_pNumImage = rhs.m_pNumImage;
             this->m_pHorIndexBound = rhs.m_pHorIndexBound;
             this->m_pVerIndexBound = rhs.m_pVerIndexBound;
+            this->m_oDirection = rhs.m_oDirection;
+            this->m_iGroupCount = rhs.m_iGroupCount;
+            this->m_iLineCount = rhs.m_iLineCount;
             this->m_vecPoints.clear();
-            for(uint16_t index = 0;index < std::get<1>(this->m_pNumImage);++index){
-                this->put_line_point(rhs.get_line_point(index));
+
+            for(uint16_t index = 0;index < m_iGroupCount;++index){
+                this->m_vecPoints.push_back( [&](uint16_t groupindex) -> std::vector<uint16_t> {
+                        if(groupindex < rhs.m_vecPoints.size()) return rhs.m_vecPoints[index];
+                        return {};
+                }(index) );
             }
         }
 
-        void put_line_point(const std::vector<uint16_t>& points){
-            m_vecPoints.push_back(points);
+        // the elements in coord are orgnized "which row", "which column"
+        void put_point_by_coord(uint16_t value, const std::tuple<uint16_t, uint16_t>& coord){
+            if(LIST_HORIZONTAL == m_oDirection){
+                if(std::get<0>(coord) < m_iGroupCount && std::get<1>(coord) < m_iLineCount){
+                    m_vecPoints[std::get<0>(coord)][std::get<1>(coord)] = value;
+                }
+            }else{
+                if(std::get<0>(coord) < m_iLineCount && std::get<1>(coord) < m_iGroupCount){
+                    m_vecPoints[std::get<1>(coord)][std::get<0>(coord)] = value;
+                }
+            }
         }
 
-        bool get_point_value(uint16_t group_index, uint16_t point_index, uitn16_t &value){
-            if(group_index >= std::get<1>(m_pNumImage)) return false;
-            if()
-            return m_vecPoints[index];
+        bool get_point_by_realcoord(uint16_t group_index, uint16_t point_index, uint16_t &value){
+            if(LIST_HORIZONTAL == m_oDirection){
+                if(group_index >= m_iGroupCount){ value = 0; return false; }
+                if(point_index >= std::get<0>(m_pHorIndexBound)
+                        && point_index <= std::get<1>(m_pHorIndexBound)){
+                    value = m_vecPoints[group_index][point_index-std::get<0>(m_pHorIndexBound)];
+                }else{ value = 0; }
+            }else{
+                if(group_index >= m_iGroupCount){ value = 0; return false; }
+                if(point_index >= std::get<0>(m_pVerIndexBound)
+                        && point_index <= std::get<1>(m_pVerIndexBound)){
+                    value = m_vecPoints[group_index][point_index-std::get<0>(m_pVerIndexBound)];
+                }else{ value = 0; }
+            }
+            return true;
         }
 
 //        std::vector<uint16_t> get_point_column(uint16_t index) const{
@@ -102,13 +134,12 @@ private:
 //            return temp;
 //        }
 
-        std::vector<uint16_t> get_line_point(uint16_t index) const{
-            if(index >= std::get<1>(m_pNumImage)) return {};
-            return m_vecPoints[index];
+        uint16_t get_num_line() const { return m_iLineCount; }
+        uint16_t get_num_group() const { return m_iGroupCount; }
+        std::tuple<uint16_t, uint16_t> get_org_coord(){
+            return this->m_pOriginalPoint;
         }
 
-        uint16_t get_num_column() const { return std::get<0>(m_pNumImage); }
-        uint16_t get_num_row() const { return std::get<1>(m_pNumImage); }
         std::tuple<uint16_t, uint16_t> get_hor_bound(){
             return this->m_pHorIndexBound;
         }
@@ -121,10 +152,11 @@ private:
         const KPointDetail & operator = (const KPointDetail&){ return *this; }
 
         std::tuple<uint16_t, uint16_t> m_pOriginalPoint;
-        std::tuple<uint16_t, uint16_t> m_pNumImage;
         std::tuple<uint16_t, uint16_t> m_pHorIndexBound;
         std::tuple<uint16_t, uint16_t> m_pVerIndexBound;
         outputformat m_oDirection;
+        uint16_t m_iGroupCount;
+        uint16_t m_iLineCount;
         std::vector<std::vector<uint16_t>> m_vecPoints;
     };
 

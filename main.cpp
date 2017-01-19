@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     KCurveAnalyse a(320,256, 0.5, 0.575, -10., 10., 3., -20., 6.25, 5.);
     std::vector<std::vector<uint16_t>> points;
     if(a.get_filelist()){
-        a.get_pixel_point(std::make_tuple<uint16_t, uint16_t>(193,679),std::make_tuple<uint16_t, uint16_t>(10,10),std::cout);
+        a.get_pixel_point(std::make_tuple<uint16_t, uint16_t>(793,679),std::make_tuple<uint16_t, uint16_t>(100,100),std::cout);
         //a.get_pixel_list(std::make_tuple<uint16_t, uint16_t>(193,679), points);
     }
     return 0;
