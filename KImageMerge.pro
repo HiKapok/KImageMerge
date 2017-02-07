@@ -18,12 +18,14 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     kimagecollector.cpp \
     kimagemerge.cpp \
-    kcurveanalyse.cpp
+    kcurveanalyse.cpp \
+    kfixpointanalyse.cpp
 
 HEADERS  += mainwindow.h \
     krawdblintimg.h \
     kimagecollector.h \
     kimagemerge.h \
-    kcurveanalyse.h
+    kcurveanalyse.h \
+    kfixpointanalyse.h
 
 FORMS    += mainwindow.ui

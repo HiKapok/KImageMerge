@@ -28,8 +28,9 @@ public:
     /* invoke this to get pixel value list related to the position */
     bool get_pixel_list(std::tuple<uint16_t, uint16_t>, std::vector<std::vector<uint16_t>>&);
     // get pixel value for draw curve
-    bool get_pixel_point(std::tuple<uint16_t, uint16_t>, std::tuple<uint16_t, uint16_t>, std::ostream&, outputformat = LIST_VERTICAL);
+    bool get_pixel_point(std::tuple<uint16_t, uint16_t>, std::tuple<uint16_t, uint16_t>, std::ostream&, outputformat = LIST_HORIZONTAL);
 
+    bool draw_curve(std::string);
 private:
     uint16_t m_iImgWidth;
     uint16_t m_iImgHeight;
@@ -49,6 +50,7 @@ private:
     std::vector<std::string> m_vecFileLists;
     std::vector<uint16_t> m_vecXImageIndex;
     std::vector<uint16_t> m_vecYImageIndex;
+    std::vector<std::string> m_vecOutFileLists;
 
     /* translate the pixel position in the whole big image to a vector of image filenames in which contains this pixel */
     bool pixel2file(uint16_t, uint16_t, std::vector<std::string>&);

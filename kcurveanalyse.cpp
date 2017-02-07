@@ -5,6 +5,7 @@
 #include <QDir>
 #include <QStringList>
 #include <QRegularExpression>
+#include <QProcess>
 
 #include "krawdblintimg.h"
 
@@ -224,14 +225,24 @@ bool KCurveAnalyse::get_pixel_point(std::tuple<uint16_t, uint16_t> intialPoint, 
 
     std::ofstream of(m_sCurDirectory+"recorder.txt", std::ofstream::out | std::ios_base::trunc);
 
+    m_vecOutFileLists.clear();
     if(LIST_VERTICAL == format){
+        // fill recorder file
+        os << xCount - 1 << "\t";
+        for(auto & pointdetail : pointlist){
+            os<<std::get<1>(pointdetail.get_org_coord());
+            os<<"\t";
+        }
+        of << os.str() << "\r\n";
+        os.str("");
         /* xCount must be same for all points */
         for(uint16_t index = 0;index < xCount;++index){
             os<<m_sCurDirectory.c_str()<<"points__x"<<m_vecXImageIndex[0]<<"("<<m_fOAWidthLow+(m_vecXImageIndex[0]-1)*m_fWStepAngle<<")_x"
             <<m_vecXImageIndex[xCount-1]<<"("<<m_fOAWidthLow+(m_vecXImageIndex[xCount-1]-1)*m_fWStepAngle<<")__";
             os<<index<<"("<<xCount<<").txt";
             std::ofstream datafile(os.str(), std::ofstream::out | std::ios_base::trunc);
-            std::cout << os.str().c_str()<<std::endl;
+            m_vecOutFileLists.push_back(std::string( os.str().c_str() ));
+            std::cout << os.str().c_str() <<std::endl;
             os.str("");
 
             os<<"index\t";
@@ -258,12 +269,21 @@ bool KCurveAnalyse::get_pixel_point(std::tuple<uint16_t, uint16_t> intialPoint, 
             os.str("");
         }
     }else{
+        // fill recorder file
+        os << yCount - 1 << "\t";
+        for(auto & pointdetail : pointlist){
+            os<<std::get<0>(pointdetail.get_org_coord());
+            os<<"\t";
+        }
+        of << os.str() << "\r\n";
+        os.str("");
         /* yCount must be same for all points */
         for(uint16_t index = 0;index < yCount;++index){
             os<<m_sCurDirectory.c_str()<<"points__y"<<m_vecYImageIndex[0]<<"("<<m_fOAHeightLow+(m_vecYImageIndex[0]-1)*m_fHStepAngle<<")_y"
             <<m_vecYImageIndex[yCount-1]<<"("<<m_fOAHeightLow+(m_vecYImageIndex[yCount-1]-1)*m_fHStepAngle<<")__";
             os<<index<<"("<<yCount<<").txt";
             std::ofstream datafile(os.str(), std::ofstream::out | std::ios_base::trunc);
+            m_vecOutFileLists.push_back(std::string( os.str().c_str() ));
             std::cout << os.str().c_str()<<std::endl;
             os.str("");
 
@@ -294,6 +314,75 @@ bool KCurveAnalyse::get_pixel_point(std::tuple<uint16_t, uint16_t> intialPoint, 
     }
 
     of.close();
+    return true;
+}
+
+bool KCurveAnalyse::draw_curve(std::string tempfilename)
+{
+    std::ofstream of(tempfilename, std::ofstream::out | std::ios_base::trunc);
+
+    std::ostringstream os;
+
+    of << "set terminal png small\r\n";
+
+    std::ifstream filerecorder(m_sCurDirectory+"recorder.txt", std::ifstream::in);
+
+    uint16_t num_column = 0;
+    filerecorder >> num_column;
+    uint16_t * pLineName = new (std::nothrow) uint16_t[num_column];
+
+    if(nullptr == pLineName) return false;
+
+    for(uint16_t index = 0;index < num_column;++index){
+        filerecorder >> pLineName[index];
+    }
+    //std::cout << num_column << std::endl;
+
+    for(auto & str : m_vecOutFileLists){  
+        os.str("");
+        os << "set output \"" << [&]()->std::string{
+                                    std::string temp("");
+                                    for(auto & c : str){
+                                        /* the ascii code of '\' is 92 */
+                                        if(c != 92) temp.push_back(c);
+                                        else temp.push_back('/');
+                                    }
+                                    return temp;
+                                }() << ".png\"\r\n";
+        os << "plot ";
+        for(uint16_t index = 1;index <= num_column;++index){
+            os << "\"" << [&]()->std::string{
+                   std::string temp("");
+                   for(auto & c : str){
+                       /* the ascii code of '\' is 92 */
+                       if(c != 92) temp.push_back(c);
+                       else temp.push_back('/');
+                   }
+                   return temp;
+               }() << "\" " << "u 1:" << index + 1 << " w lp lt " << index%6 + 1
+               <<" lw 1.7 pt " << index%13+1 <<"ps 0.6 t \""<< pLineName[index-1] <<"\"";
+            if(index != num_column) os << ", ";
+        }
+        of << os.str() << "\r\n";
+    }
+
+    if(nullptr != pLineName){
+        delete [] pLineName;
+    }
+    filerecorder.close();
+    of.close();
+
+    QProcess process;
+    QStringList arguments;
+    arguments << tempfilename.c_str();
+    process.start("D://gnuplot//bin//gnuplot.exe", arguments);
+    if (!process.waitForStarted())
+        return false;
+
+    if (!process.waitForFinished())
+        return false;
+    process.close();
+
     return true;
 }
 
