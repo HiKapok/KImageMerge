@@ -15,7 +15,9 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
-
+    KFixPointAnalyse a(320,256, 1., 1., -10., 10., 2.5, -19.5);
+    a.BuildFileList();
+    a.DrawCurve(KFixPointAnalyse::LIST_HORIZONTAL, "D://out100-100_12.txt", 12, std::make_tuple(100,100));
 
 //    KCurveAnalyse a(320,256, 1., 1., -10., 10., 2.5, -19.5, 6.25, 5.);
 //    //KCurveAnalyse a(320,256, 0.5, 0.575, -10., 10., 3., -20., 6.25, 5.);
