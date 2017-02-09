@@ -46,12 +46,12 @@ bool KCurveAnalyse::pixel2file(uint16_t pixel_posX, uint16_t pixel_posY, std::ve
 
     // translate the image index to the string such as: -10.000_2.500
     // all of these strings are put in the container result
-    std::ostringstream os;
+    std::ostringstream os("", std::ios_base::ate);
     os.precision(3);
     os.setf(std::ios::fixed);
     for(uint16_t yIndex = 0;yIndex<m_vecYImageIndex.size();++yIndex){
         for(uint16_t xIndex = 0;xIndex<m_vecXImageIndex.size();++xIndex){
-            os.str("");
+            os.str("_");
             os<<m_fOAWidthLow+(m_vecXImageIndex[xIndex]-1)*m_fWStepAngle<<"_"<<m_fOAHeightLow-(m_vecYImageIndex[yIndex]-1)*m_fHStepAngle;
             result.push_back(os.str());
         }
@@ -195,6 +195,8 @@ bool KCurveAnalyse::get_pixel_point(std::tuple<uint16_t, uint16_t> intialPoint, 
                 for(std::string &item : m_vecFileLists){
                     QRegularExpressionMatch match = re.match(item.c_str());
                     if (match.hasMatch()){
+                        //qDebug()<<yIndex<<xIndex<<item.c_str();
+
                        realFileName = item;
                        break;
                     }

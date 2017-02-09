@@ -5,6 +5,7 @@
 #include <QStringList>
 #include <QRegularExpression>
 #include <QProcess>
+#include <QDebug>
 
 #include "krawdblintimg.h"
 
@@ -48,18 +49,19 @@ bool KFixPointAnalyse::BuildFileList()
     uint32_t hashtemp = 0;
     for(uint16_t yIndex = 0; yIndex < m_iTotalHCount; ++yIndex){
         for(uint16_t xIndex = 0; xIndex < m_iTotalWCount; ++xIndex){
-            hashtemp = yIndex * static_cast<uint16_t>(65535) + xIndex;
-            std::ostringstream os;
+            hashtemp = yIndex * 65535 + xIndex;
+            std::ostringstream os("", std::ios_base::ate);
             os.precision(3);
             os.setf(std::ios::fixed);
-            os.str("");
+            os.str("_");
             os<<m_fOAWidthLow+xIndex*m_fWStepAngle<<"_"<<m_fOAHeightLow-yIndex*m_fHStepAngle;
-
+//qDebug()<<xIndex<<yIndex<<os.str().c_str();
             re.setPattern(os.str().c_str());
             // find the real filename
             for(std::string &item : vecFileLists){
                 QRegularExpressionMatch match = re.match(item.c_str());
                 if (match.hasMatch()){
+                //qDebug()<<hashtemp<<os.str().c_str()<<item.c_str();
                    m_mFileBuff.insert(std::make_pair(hashtemp, item));
                    break;
                 }
@@ -133,10 +135,12 @@ bool KFixPointAnalyse::DumpPoint2File(KFixPointAnalyse::outputformat type, std::
         if(index > m_iTotalHCount - 1) return false;
         else{
             for(uint16_t xIndex = 0; xIndex < m_iTotalWCount; ++xIndex){
-                hashtemp = index * static_cast<uint16_t>(65535) + xIndex;
+                hashtemp = index * 65535 + xIndex;
                 std::unordered_map<uint32_t,std::string>::iterator it = m_mFileBuff.find(hashtemp);
+
                 if(it == m_mFileBuff.end()) of << xIndex << "\t" << 0 << std::endl;
                 else{
+                    qDebug()<< hashtemp << it->first << index << xIndex << it->second.c_str();
                     get_point_value( it->second , querypos, pixel_value);
                     of << xIndex << "\t" << pixel_value << std::endl;
                 }
@@ -147,7 +151,7 @@ bool KFixPointAnalyse::DumpPoint2File(KFixPointAnalyse::outputformat type, std::
         if(index > m_iTotalWCount - 1) return false;
         else{
             for(uint16_t yIndex = 0; yIndex < m_iTotalHCount; ++yIndex){
-                hashtemp = yIndex * static_cast<uint16_t>(65535) + index;
+                hashtemp = yIndex * 65535 + index;
 
                 std::unordered_map<uint32_t,std::string>::iterator it = m_mFileBuff.find(hashtemp);
                 if(it == m_mFileBuff.end()) of << yIndex << "\t" << 0 << std::endl;

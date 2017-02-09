@@ -82,10 +82,10 @@ bool KImageCollector::prepare_lists(QString targetDir){
         m_vecFileLists.push_back((QDir::toNativeSeparators(thisDir.absolutePath()) + QDir::separator() + item).toLocal8Bit().data());
     }
     std::sort(m_vecFileLists.begin(), m_vecFileLists.end(), KStringCompare());
-//    for(auto item:m_vecFileLists)
-//    {
-//        qDebug()<<item.c_str();
-//    }
+    //for(auto item:m_vecFileLists)
+    //{
+    //    qDebug()<<item.c_str();
+    //}
     return true;
 }
 
