@@ -28,7 +28,7 @@ public:
     /* invoke this to get pixel value list related to the position */
     bool get_pixel_list(std::tuple<uint16_t, uint16_t>, std::vector<std::vector<uint16_t>>&);
     // get pixel value for draw curve
-    bool get_pixel_point(std::tuple<uint16_t, uint16_t>, std::tuple<uint16_t, uint16_t>, std::ostream&, outputformat = LIST_HORIZONTAL);
+    bool get_pixel_point(std::tuple<uint16_t, uint16_t>, std::tuple<uint16_t, uint16_t>, outputformat = LIST_HORIZONTAL);
 
     bool draw_curve(std::string);
 private:
@@ -58,7 +58,7 @@ private:
     uint16_t pixel2imagenum(uint16_t, uint16_t, uint16_t, uint16_t, std::vector<uint16_t>&);
 
     /* don't call this */
-    bool get_pixel_gray(std::string, std::tuple<uint16_t, uint16_t>, uint16_t&, bool=false);
+    bool get_pixel_gray(std::string, std::tuple<uint16_t, uint16_t>, uint16_t&, bool=true);
 
     class KPointDetail{
     public:
@@ -175,7 +175,9 @@ private:
             }
             int16_t min_bound = std::min(std::floor((pixel*1.)/step+1),std::ceil(((pixel*1.)-m_iImgWidth+1)/step)+1);
             int16_t max_bound = std::max(std::floor((pixel*1.)/step+1),std::ceil(((pixel*1.)-m_iImgWidth+1)/step)+1);
+
             min_bound = std::max(min_bound, static_cast<int16_t>(1));
+            min_bound = std::min(min_bound, static_cast<int16_t>(count));
             max_bound = std::min(max_bound, static_cast<int16_t>(count));
             for(int16_t index = min_bound;index <= max_bound;++index){
                 rhs.push_back(static_cast<uint16_t>(index));

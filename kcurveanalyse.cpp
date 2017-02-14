@@ -164,7 +164,7 @@ bool KCurveAnalyse::get_pixel_list(std::tuple<uint16_t, uint16_t> position, std:
 }
 
 
-bool KCurveAnalyse::get_pixel_point(std::tuple<uint16_t, uint16_t> intialPoint, std::tuple<uint16_t, uint16_t> step, std::ostream &output, outputformat format)
+bool KCurveAnalyse::get_pixel_point(std::tuple<uint16_t, uint16_t> intialPoint, std::tuple<uint16_t, uint16_t> step, outputformat format)
 {
     QRegularExpression re;
     std::ostringstream os;
@@ -175,8 +175,9 @@ bool KCurveAnalyse::get_pixel_point(std::tuple<uint16_t, uint16_t> intialPoint, 
     std::vector<KPointDetail> pointlist;
     uint16_t xCount = 0;
     uint16_t yCount = 0;
+    uint16_t loopCount = 0;
 //qDebug()<<m_iTotalWidth<<m_iTotalHeight;
-    for(;wpos < m_iTotalWidth && hpos < m_iTotalHeight;){
+    for(;wpos < m_iTotalWidth && hpos < m_iTotalHeight;++loopCount){
         //qDebug()<<wpos<<hpos;
         if(!pixel2file(wpos, hpos, imagelist)) return false;
         xCount = m_vecXImageIndex.size();
@@ -230,7 +231,7 @@ bool KCurveAnalyse::get_pixel_point(std::tuple<uint16_t, uint16_t> intialPoint, 
     m_vecOutFileLists.clear();
     if(LIST_VERTICAL == format){
         // fill recorder file
-        os << xCount - 1 << "\t";
+        os << loopCount << "\t";
         for(auto & pointdetail : pointlist){
             os<<std::get<1>(pointdetail.get_org_coord());
             os<<"\t";
@@ -272,7 +273,7 @@ bool KCurveAnalyse::get_pixel_point(std::tuple<uint16_t, uint16_t> intialPoint, 
         }
     }else{
         // fill recorder file
-        os << yCount - 1 << "\t";
+        os << loopCount << "\t";
         for(auto & pointdetail : pointlist){
             os<<std::get<0>(pointdetail.get_org_coord());
             os<<"\t";
@@ -281,8 +282,8 @@ bool KCurveAnalyse::get_pixel_point(std::tuple<uint16_t, uint16_t> intialPoint, 
         os.str("");
         /* yCount must be same for all points */
         for(uint16_t index = 0;index < yCount;++index){
-            os<<m_sCurDirectory.c_str()<<"points__y"<<m_vecYImageIndex[0]<<"("<<m_fOAHeightLow+(m_vecYImageIndex[0]-1)*m_fHStepAngle<<")_y"
-            <<m_vecYImageIndex[yCount-1]<<"("<<m_fOAHeightLow+(m_vecYImageIndex[yCount-1]-1)*m_fHStepAngle<<")__";
+            os<<m_sCurDirectory.c_str()<<"points__y"<<m_vecYImageIndex[0]<<"("<<m_fOAHeightLow-(m_vecYImageIndex[0]-1)*m_fHStepAngle<<")_y"
+            <<m_vecYImageIndex[yCount-1]<<"("<<m_fOAHeightLow-(m_vecYImageIndex[yCount-1]-1)*m_fHStepAngle<<")__";
             os<<index<<"("<<yCount<<").txt";
             std::ofstream datafile(os.str(), std::ofstream::out | std::ios_base::trunc);
             m_vecOutFileLists.push_back(std::string( os.str().c_str() ));

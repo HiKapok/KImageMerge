@@ -140,7 +140,7 @@ bool KFixPointAnalyse::DumpPoint2File(KFixPointAnalyse::outputformat type, std::
 
                 if(it == m_mFileBuff.end()) of << xIndex << "\t" << 0 << std::endl;
                 else{
-                    qDebug()<< hashtemp << it->first << index << xIndex << it->second.c_str();
+                    //qDebug()<< hashtemp << it->first << index << xIndex << it->second.c_str();
                     get_point_value( it->second , querypos, pixel_value);
                     of << xIndex << "\t" << pixel_value << std::endl;
                 }
