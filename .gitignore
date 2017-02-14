@@ -1,6 +1,8 @@
 # Project files
 /build-KImageMerge-QT_5_5-Debug
 /build-KImageMerge-QT_5_5-Release
+/debug
+/release
 
 # Compiled Object files
 *.slo
