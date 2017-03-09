@@ -7,14 +7,19 @@
 #include <QDebug>
 #include <QRegularExpression>
 
-
+#include "kparamcontainer.h"
 #include "kcurveanalyse.h"
 #include "kfixpointanalyse.h"
+#include "krestoration.h"
 
+std::mutex KParamContainer::m_mutex;
+std::once_flag KParamContainer::m_flag;
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
+    KRestoration krestore;
+    //KParamContainer::getInstance();
 //    KFixPointAnalyse a(320,256, 0.5, 0.575, -10., 10., 3., -20.);
 //    a.BuildFileList();
 //    std::ostringstream os;
